@@ -84,7 +84,7 @@
 			this.btnRun.TabIndex = 4;
 			this.btnRun.Text = "Run";
 			this.btnRun.UseVisualStyleBackColor = true;
-			this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
+			this.btnRun.Click += new System.EventHandler(this.btnRun_ClickAsync);
 			// 
 			// label2
 			// 
@@ -118,8 +118,10 @@
 			this.Controls.Add(this.txtPath);
 			this.Controls.Add(this.pictureBox1);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
 			this.Name = "MegaKeep";
+			this.ShowIcon = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "MegaKeep";
 			this.Load += new System.EventHandler(this.MegaKeep_Load);

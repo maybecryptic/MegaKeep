@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MegaKeep
@@ -15,7 +16,7 @@ namespace MegaKeep
 			InitializeComponent();
 		}
 
-		private void btnRun_Click(object sender, EventArgs e)
+		private async void btnRun_ClickAsync(object sender, EventArgs e)
 		{
 			txtLog.Clear();
 
@@ -26,10 +27,10 @@ namespace MegaKeep
 				return;
 			}
 
-			// then check to make sure the file exists
-			if (!File.Exists(txtPath.Text))
+			// then check to make sure the file exists and it's actually a txt file
+			if (!File.Exists(txtPath.Text) || txtPath.Text.Substring(txtPath.Text.LastIndexOf(".")) != ".txt")
 			{
-				MessageBox.Show("The file could not be found");
+				Log("The file could not be found or is not a .txt file");
 				return;
 			}
 
@@ -47,6 +48,12 @@ namespace MegaKeep
 				return;
 			}
 
+			// run the processes in a task so it doesn't freeze the ui
+			await Task.Run(() => Work(lines));
+		}
+
+		private void Work(string[] lines)
+		{
 			// loop through every line
 			foreach (var line in lines)
 			{
@@ -112,12 +119,16 @@ namespace MegaKeep
 
 				if (restart)
 				{
-					btnRun.PerformClick();
+					this.Invoke((MethodInvoker) delegate
+					{
+						btnRun.PerformClick();
+					});
 					return;
 				}
 			}
 
 			Log("Finished");
+			File.WriteAllLines(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-log.txt", txtLog.Lines);
 		}
 
 		private void btnLocate_Click(object sender, EventArgs e)
@@ -136,7 +147,12 @@ namespace MegaKeep
 
 		private void Log(string txt)
 		{
-			txtLog.Text += txt + Environment.NewLine;
+			this.Invoke((MethodInvoker) delegate
+			{
+				var time = "[" + DateTime.Now.ToString("hh:mm:ss tt") + "] ";
+
+				txtLog.Text +=  time + txt + Environment.NewLine;
+			});
 		}
 
 		private void MegaKeep_Load(object sender, EventArgs e)

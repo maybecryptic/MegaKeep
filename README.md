@@ -1,7 +1,7 @@
 MegaKeep
 ========
 
-![MegaKeep](https://s.put.re/SnpwJiiA.png)
+![MegaKeep](https://i.imgur.com/jnLYBvm.png)
 
 This program will allow you to login to all of your mega accounts to avoid deletion due to inactivity.
 
@@ -18,3 +18,13 @@ Create a text file (.txt) of all your mega accounts and passwords in a `user:pas
 ## Contributing
 
 When making a pull request, please provide a thorough explanation of what you added/fixed. Suggestions are welcome in the form of issues.
+
+## Version History
+
+v1.0
+- Initial Release
+
+v1.1
+- Fixed the UI freezing (via Task)
+- Added timestamps to logging
+- Added log saving

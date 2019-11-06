@@ -52,6 +52,77 @@ namespace MegaKeep
 			await Task.Run(() => Work(lines));
 		}
 
+		private string Login(string user, string pass)
+		{
+			Process login = new Process
+			{
+				StartInfo =
+				{
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					CreateNoWindow = true,
+					FileName = _local + "\\MEGAcmd\\mega-login.bat",
+					Arguments = user + " \"" + pass + "\""
+				}
+			};
+
+			Log("Logging in to " + user + "...");
+
+			login.Start();
+			var result = login.StandardOutput.ReadToEnd();
+			login.WaitForExit();
+
+			if (login.HasExited)
+				return result;
+			else
+				return "Unable to exit the process"; 
+		}
+
+		private string Logout()
+		{
+			Process logout = new Process
+			{
+				StartInfo =
+				{
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					CreateNoWindow = true,
+					FileName = _local + "\\MEGAcmd\\mega-logout.bat"
+				}
+			};
+
+			// the process doesn't exit, just return failed
+			var result = "Failed to exit the process";
+
+			// 10 attempts to logout
+			for (var i = 0; i < 10; i++)
+			{
+				logout.Start();
+				logout.WaitForExit();
+
+				if (logout.HasExited)
+				{
+					var res = logout.StandardOutput.ReadToEnd();
+
+					if (res == "Logging out..." + Environment.NewLine)
+					{
+						// success
+						result = "Success";
+						break;
+					}
+					else
+					{
+						Log("Unable to log out (Attempt #" + (i + 1) + ")");
+						result = res;
+					}
+				}
+			}
+
+			return result;
+		}
+
 		private void Work(string[] lines)
 		{
 			// loop through every line
@@ -61,69 +132,59 @@ namespace MegaKeep
 				var user = info[0];
 				var pass = info[1];
 
-				var restart = false;
+				/* NOTE
+				 * the for loop's purpose is in case the account is already
+				 * logged into mega. this can happen if the user closes out
+				 * of megakeep before the cycle ends or because the user
+				 * is actively using megacmd
+				 */
 
-				Log("Logging in to " + user + "...");
-
-				Process login = new Process
+				for (var i = 0; i < 2; i++)
 				{
-					StartInfo =
+					var loginResult = Login(user, pass);
+
+					if (loginResult == "")
 					{
-						UseShellExecute = false,
-						RedirectStandardOutput = true,
-						RedirectStandardError = true,
-						CreateNoWindow = true,
-						FileName = _local + "\\MEGAcmd\\mega-login.bat",
-						Arguments = user + " \"" + pass + "\""
+						// login was successful
+						Log("Login succeeded. Logging out...");
 					}
-				};
-
-				login.Start();
-				var result = login.StandardOutput.ReadToEnd();
-				login.WaitForExit();
-
-				if (login.HasExited)
-				{
-					if (result.Contains("Login failed"))
+					else if (loginResult.Contains("Login failed"))
 					{
-						Log("Failed: " + result);
-						continue; // just move on to the next account
+						Log("Failed: " + loginResult);
+						break; // just move on to the next account
 					}
-					else if (result.Contains("Already logged in"))
+					else if (loginResult.Contains("Already logged in"))
 					{
-						Log("Already logged in. Logging out and restarting...");
-						restart = true;
+						Log("Already logged in. Logging out...");
 					}
-				}
 
-				// wait a sec
-				Thread.Sleep(1500);
+					Thread.Sleep(2000);
 
-				Process logout = new Process
-				{
-					StartInfo =
+					var logout = Logout();
+
+					if (logout == "Success")
 					{
-						UseShellExecute = false,
-						RedirectStandardOutput = true,
-						RedirectStandardError = true,
-						CreateNoWindow = true,
-						FileName = _local + "\\MEGAcmd\\mega-logout.bat"
+						Log("Logged out");
+
+						Thread.Sleep(2000);
+
+						// we don't want to login to the same account again
+						// so we're going to break out of the loop
+						if (loginResult == "")
+							break;
 					}
-				};
-
-				logout.Start();
-				logout.WaitForExit();
-
-				if (logout.HasExited)
-					Log(logout.StandardOutput.ReadToEnd());
-
-				if (restart)
-				{
-					this.Invoke((MethodInvoker) delegate
+					else
 					{
-						btnRun.PerformClick();
-					});
-					return;
+						/* NOTE
+						 * I've never had this happen before.
+						 * however if this done happen,
+						 * the loop will be ended since there's no
+						 * point in continuing if logging out doesn't work
+						 */
+
+						Log("Unable to logout. Error: " + logout);
+						return;
+					}
 				}
 			}
 
@@ -151,7 +212,7 @@ namespace MegaKeep
 			{
 				var time = "[" + DateTime.Now.ToString("hh:mm:ss tt") + "] ";
 
-				txtLog.Text +=  time + txt + Environment.NewLine;
+				txtLog.AppendText(time + txt + Environment.NewLine);
 			});
 		}
 

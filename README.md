@@ -1,7 +1,7 @@
 MegaKeep
 ========
 
-![MegaKeep](https://i.imgur.com/jnLYBvm.png)
+![MegaKeep](https://i.imgur.com/43lLYFx.png)
 
 This program will allow you to login to all of your mega accounts to avoid deletion due to inactivity.
 
@@ -22,9 +22,17 @@ When making a pull request, please provide a thorough explanation of what you ad
 ## Version History
 
 v1.0
+
 - Initial Release
 
 v1.1
+
 - Fixed the UI freezing (via Task)
 - Added timestamps to logging
 - Added log saving
+
+v2.0
+
+- Rewrote the base code for the program
+- The program will no longer completely restart if an account is already logged in
+- The log now automatically scrolls down with the log instead of jumping to the top

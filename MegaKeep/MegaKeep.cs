@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -10,10 +11,26 @@ namespace MegaKeep
 	public partial class MegaKeep : Form
 	{
 		private string _local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
+		private string[] commandlineArgs = { };
 		public MegaKeep()
 		{
 			InitializeComponent();
+		}
+		public MegaKeep(string[] args)
+		{
+			InitializeComponent();
+			if (args.Length > 0)
+			{
+				commandlineArgs = args;
+				var txtFileIndex = Array.IndexOf(args, "--txtFile") + 1;
+				var txtFile = args[txtFileIndex];
+				if (File.Exists(txtFile))
+				{
+					Properties.Settings.Default.Location = txtFile;
+					Properties.Settings.Default.Save();
+					txtPath.Text = txtFile;
+				}
+			}
 		}
 
 		private async void btnRun_ClickAsync(object sender, EventArgs e)
@@ -50,6 +67,8 @@ namespace MegaKeep
 
 			// run the processes in a task so it doesn't freeze the ui
 			await Task.Run(() => Work(lines));
+			if (commandlineArgs.Contains("--cli"))// if running in cli mode, closes window after running work.
+				this.Close();
 		}
 
 		private string Login(string user, string pass)
@@ -218,6 +237,11 @@ namespace MegaKeep
 
 		private void MegaKeep_Load(object sender, EventArgs e)
 		{
+			// if started with arg "--cli" simulate button click in UI
+			if (commandlineArgs.Contains("--cli"))
+			{
+				btnRun.PerformClick();
+			}
 			txtPath.Text = Properties.Settings.Default.Location;
 		}
 

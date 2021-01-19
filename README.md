@@ -20,6 +20,7 @@ Create a text file (.txt) of all your mega accounts and passwords in a `user:pas
 You are also able to start the program via command line.
 
 `--cli` will auto-click the run button and run whatever file is already loaded
+
 `--txtFile "C:\path\to\txtfile.txt"` will load the text file into the program
 
 ## Contributing

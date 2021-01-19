@@ -12,24 +12,23 @@ namespace MegaKeep
 	{
 		private string _local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 		private string[] commandlineArgs = { };
-		public MegaKeep()
-		{
-			InitializeComponent();
-		}
+
 		public MegaKeep(string[] args)
 		{
 			InitializeComponent();
-			if (args.Length > 0)
+
+			if (args.Length == 0)
+				return;
+
+			commandlineArgs = args;
+			var txtFileIndex = Array.IndexOf(args, "--txtFile") + 1;
+			var txtFile = args[txtFileIndex];
+
+			if (File.Exists(txtFile))
 			{
-				commandlineArgs = args;
-				var txtFileIndex = Array.IndexOf(args, "--txtFile") + 1;
-				var txtFile = args[txtFileIndex];
-				if (File.Exists(txtFile))
-				{
-					Properties.Settings.Default.Location = txtFile;
-					Properties.Settings.Default.Save();
-					txtPath.Text = txtFile;
-				}
+				Properties.Settings.Default.Location = txtFile;
+				Properties.Settings.Default.Save();
+				txtPath.Text = txtFile;
 			}
 		}
 
@@ -40,7 +39,7 @@ namespace MegaKeep
 			// first make sure megacmd is found
 			if (!File.Exists(_local + "\\MEGAcmd\\mega-login.bat"))
 			{
-				Log("mega-login.bat was not found, please install it to the default dirctory: https://mega.nz/cmd");
+				Log("mega-login.bat was not found, please install it to the default directory: https://mega.nz/cmd");
 				return;
 			}
 
@@ -67,7 +66,8 @@ namespace MegaKeep
 
 			// run the processes in a task so it doesn't freeze the ui
 			await Task.Run(() => Work(lines));
-			if (commandlineArgs.Contains("--cli"))// if running in cli mode, closes window after running work.
+
+			if (commandlineArgs.Contains("--cli")) // if running in cli mode, closes window after running work
 				this.Close();
 		}
 
@@ -86,7 +86,7 @@ namespace MegaKeep
 				}
 			};
 
-			Log("Logging in to " + user + "...");
+			Log("Logging into " + user + "...");
 
 			login.Start();
 			var result = login.StandardOutput.ReadToEnd();
@@ -95,7 +95,7 @@ namespace MegaKeep
 			if (login.HasExited)
 				return result;
 			else
-				return "Unable to exit the process"; 
+				return "Unable to exit the process";
 		}
 
 		private string Logout()
@@ -127,7 +127,6 @@ namespace MegaKeep
 
 					if (res == "Logging out..." + Environment.NewLine)
 					{
-						// success
 						result = "Success";
 						break;
 					}
@@ -148,6 +147,7 @@ namespace MegaKeep
 			foreach (var line in lines)
 			{
 				var info = line.Split(':');
+
 				// check line format
 				if (info.Length != 2)
 				{
@@ -155,6 +155,7 @@ namespace MegaKeep
 					Log("Colon (:) seperator not found. Error: " + line);
 					continue;
 				}
+
 				var user = info[0];
 				var pass = info[1];
 
@@ -174,7 +175,7 @@ namespace MegaKeep
 						// login was successful
 						Log("Login succeeded. Logging out...");
 					}
-					else if (loginResult.Contains("Login failed"))
+					else if (loginResult.Contains("Failed"))
 					{
 						Log("Failed: " + loginResult);
 						break; // just move on to the next account
@@ -234,7 +235,7 @@ namespace MegaKeep
 
 		private void Log(string txt)
 		{
-			this.Invoke((MethodInvoker) delegate
+			this.Invoke((MethodInvoker)delegate
 			{
 				var time = "[" + DateTime.Now.ToString("hh:mm:ss tt") + "] ";
 
@@ -246,9 +247,8 @@ namespace MegaKeep
 		{
 			// if started with arg "--cli" simulate button click in UI
 			if (commandlineArgs.Contains("--cli"))
-			{
 				btnRun.PerformClick();
-			}
+
 			txtPath.Text = Properties.Settings.Default.Location;
 		}
 

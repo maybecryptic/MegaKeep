@@ -44,3 +44,11 @@ v2.0
 - Rewrote the base code for the program
 - The program will no longer completely restart if an account is already logged in
 - The log now automatically scrolls down with the log instead of jumping to the top
+
+v2.1
+
+- Added cli option (thanks [CrazyOldWizard](https://github.com/CrazyOldWizard))
+- Added a check for colin's in the input text file (thanks [jogerj](https://github.com/jogerj))
+- Fixed a check when there was an error logging in (mega changed the wording)
+- Updated to .net framework 4.7.2 (now using VS2019)
+- Cleaned code
